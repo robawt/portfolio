@@ -36,7 +36,7 @@ export default function Ambition() {
 
   return (
     <section id="ambition" ref={ref} style={{ overflow: 'hidden' }}>
-      <ChapterTag index={7} />
+      <ChapterTag index={6} total={7} />
       <Watermark text="AMBITION" top="15%" />
       <motion.div
         style={{

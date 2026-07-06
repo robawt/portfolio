@@ -11,7 +11,7 @@ const projects = [
 export default function Index() {
   return (
     <section id="work">
-      <ChapterTag index={5} />
+      <ChapterTag index={4} total={7} />
       <Watermark text="WORK" top="50%" />
       <motion.div
         className="eyebrow"

@@ -8,7 +8,7 @@ import Watermark from './Watermark.jsx'
 export default function Contact() {
   return (
     <section id="contact" style={{ minHeight: '90vh', overflow: 'hidden' }}>
-      <ChapterTag index={8} />
+      <ChapterTag index={7} total={7} />
       <Watermark text="THANKS" top="10%" />
       <img
         src="/assets/mark-a-transparent.png"

@@ -12,7 +12,7 @@ export default function Interlude() {
 
   return (
     <section ref={ref} style={{ padding: 0, minHeight: '90vh', overflow: 'hidden', alignItems: 'stretch' }}>
-      <ChapterTag index={6} />
+      <ChapterTag index={5} total={7} />
       <motion.div
         style={{
           y,

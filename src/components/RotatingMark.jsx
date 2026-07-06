@@ -40,7 +40,7 @@ export default function RotatingMark() {
   return (
     // tall scroll distance = finer-grained control over the rotation, feels deliberate rather than rushed
     <section ref={sectionRef} style={{ minHeight: '210vh', padding: 0, display: 'block' }}>
-      <ChapterTag index={2} />
+      <ChapterTag index={2} total={7} />
       <div style={{
         position: 'sticky', top: 0, height: '100vh',
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',

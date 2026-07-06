@@ -32,7 +32,7 @@ export default function Hero() {
 
   return (
     <section id="hero" ref={ref} style={{ overflow: 'hidden' }}>
-      <ChapterTag index={1} />
+      <ChapterTag index={1} total={7} />
       <HeroScene />
 
       <div style={{ position: 'absolute', bottom: '6vh', left: '6vw', zIndex: 2 }}>
