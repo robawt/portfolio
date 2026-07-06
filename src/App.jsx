@@ -1,6 +1,6 @@
 import Nav from './components/Nav.jsx'
 import Hero from './components/Hero.jsx'
-import RotatingMark from './components/RotatingMark.jsx'
+import Certifications from './components/Certifications.jsx'
 import Moments from './components/Moments.jsx'
 import Index from './components/Index.jsx'
 import Interlude from './components/Interlude.jsx'
@@ -22,8 +22,8 @@ export default function App() {
       <CustomCursor />
       <Nav />
       <Hero />
-      <SectionDivider index={2} label="The mark" accent="blue" />
-      <RotatingMark />
+      <SectionDivider index={2} label="Certifications" accent="blue" />
+      <Certifications />
       <SectionDivider index={3} label="Moments" accent="signal" />
       <Moments />
       <SectionDivider index={4} label="The work" accent="blue" />

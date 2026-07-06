@@ -18,11 +18,31 @@ export default function Interlude() {
           y,
           position: 'absolute',
           inset: '-8% 0',
-          backgroundImage: 'url(/assets/poster.png)',
+          backgroundImage: 'url(/assets/cosmos/cosmos_826210707.jpeg)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}
       />
+
+      {/* ambient looping video — quiet animated texture behind the gradient */}
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="auto"
+        src="/assets/cosmos/cosmos_1331189717.mp4"
+        style={{
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          opacity: 0.2,
+          pointerEvents: 'none',
+        }}
+      />
+
       <div style={{
         position: 'absolute', inset: 0,
         background: 'linear-gradient(180deg, rgba(11,17,48,0.55) 0%, rgba(11,17,48,0.75) 100%)',

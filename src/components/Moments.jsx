@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { motion, useScroll, useTransform, useMotionValueEvent } from 'framer-motion'
 import ChapterTag from './ChapterTag.jsx'
 import TiltCard from './TiltCard.jsx'
@@ -14,20 +14,11 @@ const moments = [
   { word: 'Page', title: 'Reading', sub: 'A book open somewhere, always', tag: 'Nightstand, 2024', bg: 'url(https://picsum.photos/seed/page-books/900/1200)' },
 ]
 
-// individually named component instance per card -- each gets its own stable
-// hook-call order (fixes the earlier "useTransform inside .map()" anti-pattern
-// noted in the project history; this is the React-correct way to do per-item
-// scroll-linked values when the list itself can change length)
 function MomentCard({ m, i, count, scrollYProgress }) {
   const step = 1 / count
   const start = i * step
   const end = start + step
 
-  // NOTE: deliberately not clamping these to [0, 1] -- useTransform only needs
-  // a strictly increasing input range, and clamping the first/last card's
-  // range to exactly 0 or 1 would collide with `start`/`end` and produce a
-  // degenerate (non-monotonic) range. Output is clamped automatically since
-  // scrollYProgress itself never leaves [0, 1] in practice.
   const scale = useTransform(
     scrollYProgress,
     [start - step * 0.7, start, end, end + step * 0.7],
@@ -87,19 +78,19 @@ export default function Moments() {
   const pinWrapRef = useRef(null)
   const trackRef = useRef(null)
   const [maxTranslate, setMaxTranslate] = useState(0)
+  const [viewportWidth, setViewportWidth] = useState(0)
   const [active, setActive] = useState(1)
+  const [galleryFixed, setGalleryFixed] = useState(false)
 
-  // scroll progress across the entire pinned section (0 at top of pin, 1 at the end)
   const { scrollYProgress } = useScroll({ target: pinWrapRef })
 
-  // measure real content width vs viewport so the horizontal travel distance
-  // is exact regardless of card count/size, instead of a guessed percentage
   useLayoutEffect(() => {
     const measure = () => {
       if (!trackRef.current) return
       const trackWidth = trackRef.current.scrollWidth
-      const viewportWidth = window.innerWidth
-      setMaxTranslate(Math.max(0, trackWidth - viewportWidth + Math.round(viewportWidth * 0.06)))
+      const vw = window.innerWidth
+      setViewportWidth(vw)
+      setMaxTranslate(Math.max(0, trackWidth - vw + Math.round(vw * 0.06)))
     }
     measure()
     const ro = new ResizeObserver(measure)
@@ -109,26 +100,43 @@ export default function Moments() {
       ro.disconnect()
       window.removeEventListener('resize', measure)
     }
-  }, [])
+  }, [galleryFixed])
 
   const pinHeight = Math.max(320, count * 45)
-  const x = useTransform(scrollYProgress, [0, 1], [0, -maxTranslate])
+  // cards enter from the LEFT (off-screen) and scroll RIGHT through the
+  // viewport, then exit to the RIGHT — no opacity fade, pure horizontal motion
+  // viewportWidth buffer on each side ensures the track is fully off-screen
+  // at the boundaries so no card slivers peek in before/after the scroll range
+  const scrollRange = maxTranslate + viewportWidth
+  const x = useTransform(scrollYProgress, [0, 1], [-scrollRange, scrollRange])
   const introOpacity = useTransform(scrollYProgress, [0, 0.06], [1, 0])
   const barScale = useTransform(scrollYProgress, [0, 1], [0, 1])
 
-  // fade gallery in/out at the boundaries of the pin area
-  const galleryOpacity = useTransform(
-    scrollYProgress,
-    [0, 0.02, 0.98, 1],
-    [0, 1, 1, 0]
-  )
+  // preload gallery background images
+  const preloadedImages = useRef([])
+  useEffect(() => {
+    moments.forEach((m) => {
+      const match = m.bg.match(/url\(['"]?([^'")\)]+)['"]?\)/)
+      if (match) {
+        const img = new Image()
+        img.src = match[1]
+        preloadedImages.current.push(img)
+      }
+    })
+  }, [])
+
+  // The gallery renders as a position:fixed overlay only during the scroll
+  // range. Cards enter from off-screen LEFT, pass through the viewport, and
+  // exit to the RIGHT — no opacity fade, the horizontal motion itself is
+  // the entrance/exit animation. At the boundaries the track is fully
+  // off-screen so there's nothing visible to pop.
 
   useMotionValueEvent(scrollYProgress, 'change', (v) => {
     setActive(Math.min(count, Math.max(1, Math.floor(v * count) + 1)))
+    setGalleryFixed(v > 0 && v < 1)
   })
 
   return (
-    <>
     <section id="moments" style={{ padding: '9vh 0 0 0', minHeight: 'auto' }}>
       <ChapterTag index={3} total={7} />
       <div style={{
@@ -177,64 +185,63 @@ export default function Moments() {
         </motion.p>
       </div>
 
-      {/* pin distance scales with card count so the pace stays consistent whether
-          there are 4 moments or 12 -- ~45vh of scroll "spent" per card.
-          Uses position:fixed on the gallery overlay instead of position:sticky
-          because Lenis smooth-scroll disables native scroll (body overflow:hidden +
-          CSS transforms), which breaks the browser's sticky behavior. Fixed
-          positioning is relative to the viewport and is unaffected by Lenis transforms. */}
-      <div ref={pinWrapRef} style={{ height: `${pinHeight}vh`, position: 'relative' }}>
-        {/* invisible spacer that holds the place for useScroll tracking */}
-      </div>
-    </section>
-
-      {/* fixed overlay: stays at viewport top while Lenis transforms the page content.
-          Placed OUTSIDE <section> to avoid z-index conflicts with section's z-index:1.
-          No pointerEvents overrides — the gallery captures events naturally when
-          visible (opacity>0). At opacity≈0 the overlay is invisible and won't interfere. */}
-      <motion.div
-        style={{
-          opacity: galleryOpacity,
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          overflow: 'hidden',
-          display: 'flex',
-          alignItems: 'center',
-          zIndex: 5,
-        }}
-      >
-        <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-
-          <motion.div
-            className="caption"
-            style={{
-              position: 'absolute', top: '2rem', left: '50%', transform: 'translateX(-50%)',
-              opacity: introOpacity, color: 'var(--steel)', letterSpacing: '0.14em', zIndex: 3,
+      {/* pinWrapRef — tall spacer that controls scroll duration.
+          Gallery overlay is rendered as position:fixed during the scroll range
+          and simply disappears outside it — cards are off-screen at the
+          boundaries so no fade is needed. */}
+      {galleryFixed && (
+        <motion.div
+          style={{
+              position: 'fixed',
+              top: 0, left: 0, right: 0, bottom: 0,
+              zIndex: 5,
+              overflow: 'hidden',
+              pointerEvents: 'none',
             }}
           >
-            keep scrolling — this part moves sideways
+            <GalleryContent
+              trackRef={trackRef}
+              x={x}
+              introOpacity={introOpacity}
+              active={active}
+              count={count}
+              barScale={barScale}
+              moments={moments}
+              scrollYProgress={scrollYProgress}
+            />
           </motion.div>
+        )}
+      <div ref={pinWrapRef} style={{ height: `${pinHeight}vh`, position: 'relative' }} />
+    </section>
+  )
+}
 
-          <div className="caption" style={{ position: 'absolute', top: '2rem', right: '6vw', color: 'var(--steel)', zIndex: 3 }}>
-            {String(active).padStart(2, '0')} / {String(count).padStart(2, '0')}
-          </div>
-
-          <motion.div ref={trackRef} style={{ x, display: 'flex', gap: '2px', paddingLeft: '6vw', height: '100%', alignItems: 'center' }}>
-            {moments.map((m, i) => (
-              <MomentCard key={m.title} m={m} i={i} count={count} scrollYProgress={scrollYProgress} />
-            ))}
-          </motion.div>
-
-          {/* thin fill bar tracking horizontal progress through the gallery */}
-          <div style={{ position: 'absolute', bottom: '2.5rem', left: '6vw', right: '6vw', height: 1, background: 'var(--line)', zIndex: 3 }}>
-            <motion.div style={{ scaleX: barScale, transformOrigin: '0% 50%', height: '100%', background: 'var(--signal)' }} />
-          </div>
-
-        </div>
+function GalleryContent({ trackRef, x, introOpacity, active, count, barScale, moments, scrollYProgress }) {
+  return (
+    <div style={{ position: 'relative', width: '100%', height: '100%', pointerEvents: 'auto' }}>
+      <motion.div
+        className="caption"
+        style={{
+          position: 'absolute', top: '2rem', left: '50%', transform: 'translateX(-50%)',
+          opacity: introOpacity, color: 'var(--steel)', letterSpacing: '0.14em', zIndex: 3,
+        }}
+      >
+        keep scrolling — this part moves sideways
       </motion.div>
-    </>
+
+      <div className="caption" style={{ position: 'absolute', top: '2rem', right: '6vw', color: 'var(--steel)', zIndex: 3 }}>
+        {String(active).padStart(2, '0')} / {String(count).padStart(2, '0')}
+      </div>
+
+      <motion.div ref={trackRef} style={{ x, display: 'flex', gap: '2px', paddingLeft: '6vw', height: '100%', alignItems: 'center' }}>
+        {moments.map((m, i) => (
+          <MomentCard key={m.title} m={m} i={i} count={count} scrollYProgress={scrollYProgress} />
+        ))}
+      </motion.div>
+
+      <div style={{ position: 'absolute', bottom: '2.5rem', left: '6vw', right: '6vw', height: 1, background: 'var(--line)', zIndex: 3 }}>
+        <motion.div style={{ scaleX: barScale, transformOrigin: '0% 50%', height: '100%', background: 'var(--signal)' }} />
+      </div>
+    </div>
   )
 }
