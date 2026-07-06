@@ -9,7 +9,7 @@ export default function Nav() {
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', mixBlendMode: 'difference' }}>
         <img src="/assets/mark-a-transparent.png" alt="mark" style={{ width: 20, height: 20, objectFit: 'contain' }} />
-        <span className="eyebrow" style={{ color: 'var(--bone)' }}>[YOUR NAME]</span>
+        <span className="eyebrow" style={{ color: 'var(--bone)' }}>Ayman Khan</span>
       </div>
       <div style={{ display: 'flex', gap: '2rem', mixBlendMode: 'difference' }}>
         {['Moments', 'Work', 'Contact'].map((label) => (

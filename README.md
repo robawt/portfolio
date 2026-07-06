@@ -69,6 +69,37 @@ This outputs a static site to `dist/`. Deploy that folder to:
 - `TiltCard.jsx` — the Moments gallery cards now tilt in 3D toward your cursor on hover (mouse-relative rotateX/rotateY with spring physics)
 - Hero now has three faint parallax typographic accents ("BUILD" / "CREATE" / "SHIP") drifting at different depths as you scroll — cheap to render, adds real depth
 
+## What changed in this pass (round 4 — the real fix + redesign)
+
+**A second, real scroll bug, found and fixed.** The Lenis/Framer sync fix from last round was correct and still holds — verified again with zero console errors and monotonic scroll in an automated headless-browser test. But there was a **second, independent bug**: Framer Motion's `useScroll` defaults to offset `["start start", "end end"]`, which only produces a meaningful progress range when the target element is much taller than the viewport. For `Ambition` and `Interlude` — both roughly one viewport tall — that range collapses to almost nothing, so `scrollYProgress` jumped from 0 to 1 almost instantly and then sat at 1 for the rest of the time the section was visible. That's exactly what "still broken" looks like on those two sections specifically. Confirmed by reading Framer Motion's actual source (`node_modules/framer-motion/.../offsets/presets.mjs`) rather than guessing, and fixed by giving both an explicit `offset: ['start end', 'end start']`, which spans the section's entire time on screen instead of collapsing.
+
+Verified via an automated headless-browser pass (Playwright) rather than just re-reading code: loaded the real dev build, drove it with actual wheel events (not just programmatic scrollTo), confirmed zero runtime errors and smooth monotonic scroll progression, and screenshotted every major section to check for layout breakage.
+
+**Redesign — pulled back toward genuine Lando-style minimalism.** The retro layer (marquees, blinkie badges, hit counter, guestbook, scanlines, pixel font) was fighting against the cinematic-minimal look you actually wanted, so it's gone. In its place:
+- Every section is now centered — text, imagery, signature, everything
+- A cursive script accent (`Yellowtail`, similar spirit to the Vice City wordmark) used sparingly as hand-written-feeling flourishes next to headlines ("hey, it's me", "a few", "always") — decorative, not structural
+- `CircleStamp.jsx` — rotating circular badge text (like a seal/stamp), placed in the hero and footer to fill corner space with something purposeful instead of empty
+- `Watermark.jsx` — large outlined background text behind section content (PORTFOLIO, WORK, AMBITION, THANKS) for visual density without adding noise
+- Index now pairs each project with a real image swatch instead of plain text rows
+- Nav logo now a properly transparent PNG, no more blend-mode artifacts
+
+## What changed in this pass (round 5 — spacing and layout pass)
+
+Went through every component looking for actual spacing bugs rather than guessing:
+
+**Real bugs found and fixed:**
+- `ChapterTag` was still referencing a `.pixel` CSS class that got deleted in the retro-removal pass — it was silently falling back to the browser default font. Also sat at `top: 2rem` inside every section, which collided with the fixed nav bar every time a new section reached the top of the viewport. Fixed the class and moved it to `top: 6.5rem` to clear the nav.
+- In **Index** and **Interlude**, the eyebrow label and the heading directly below it had zero gap between them — they were touching. Added proper margin.
+- In **Interlude** and **Moments**, the cursive accent word was positioned with a bigger negative offset than the gap available, so it was overlapping the eyebrow above (Interlude) or the paragraph below (Moments). Fixed by matching the offsets to the actual available space.
+- **Contact** stacked the cursive line right under a 9rem headline with only 0.5rem of margin — way too tight for that size jump. Increased breathing room throughout that whole stack, and moved the circular stamp out of the vertical flow into a corner accent instead of piling it on top of the signature.
+- **Hero** had the same eyebrow-touching-headline issue, and its background watermark text was overlapping the corner stamp — removed the watermark there since Hero already has the 3D scene, floating type, and stamp competing for attention.
+
+**Pacing (the "empty" scroll stretches):**
+- `RotatingMark`: 280vh → 210vh
+- `Moments` horizontal gallery: 220vh → 175vh
+
+Total page height dropped from ~9977px to ~8464px — tighter without losing any content.
+
 ## What to customize first
 - `src/components/Hero.jsx` — your name, tagline
 - `src/components/Moments.jsx` — replace the gradient blocks' `background` with real photos (`background-image: url(...)`), update captions

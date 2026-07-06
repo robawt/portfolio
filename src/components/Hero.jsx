@@ -3,6 +3,7 @@ import { useRef } from 'react'
 import HeroScene from './HeroScene.jsx'
 import Signature from './Signature.jsx'
 import ChapterTag from './ChapterTag.jsx'
+import CircleStamp from './CircleStamp.jsx'
 
 const line = {
   hidden: { y: '120%' },
@@ -13,9 +14,9 @@ const line = {
 }
 
 const floaters = [
-  { text: 'BUILD', top: '18%', left: '8%', speed: -60, size: '0.9rem' },
-  { text: 'CREATE', top: '68%', left: '82%', speed: 40, size: '0.85rem' },
-  { text: 'SHIP', top: '40%', left: '88%', speed: -30, size: '0.8rem' },
+  { text: 'BUILD', top: '20%', left: '10%', speed: -60 },
+  { text: 'CREATE', top: '72%', left: '84%', speed: 40 },
+  { text: 'SHIP', top: '42%', left: '90%', speed: -30 },
 ]
 
 export default function Hero() {
@@ -30,89 +31,97 @@ export default function Hero() {
   const floaterY = [f0y, f1y, f2y]
 
   return (
-    <section id="hero" ref={ref} style={{ alignItems: 'flex-start', overflow: 'hidden' }}>
+    <section id="hero" ref={ref} style={{ overflow: 'hidden' }}>
       <ChapterTag index={1} />
       <HeroScene />
 
-      {/* layered parallax accents -- each drifts at its own depth as you scroll, for texture */}
+      <div style={{ position: 'absolute', bottom: '6vh', left: '6vw', zIndex: 2 }}>
+        <CircleStamp
+          size={110}
+          centerContent={<span style={{ fontSize: '1.4rem' }}>★</span>}
+        />
+      </div>
+
       {floaters.map((f, i) => (
         <motion.div
           key={f.text}
-          style={{
-            y: floaterY[i],
-            position: 'absolute', top: f.top, left: f.left,
-            fontSize: f.size, zIndex: 0,
-          }}
-          className="pixel"
+          style={{ y: floaterY[i], position: 'absolute', top: f.top, left: f.left, zIndex: 0 }}
+          className="eyebrow"
           initial={{ opacity: 0 }}
-          animate={{ opacity: 0.18 }}
+          animate={{ opacity: 0.35 }}
           transition={{ delay: 0.8 + i * 0.15, duration: 1 }}
         >
           {f.text}
         </motion.div>
       ))}
 
-      <motion.div style={{ y, opacity, position: 'relative', zIndex: 1, width: '100%' }}>
+      <motion.div style={{ y, opacity, position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <motion.div
+          className="cursive"
+          style={{ fontSize: 'clamp(1.6rem, 4vw, 2.6rem)', marginBottom: '0.5rem' }}
+          initial={{ opacity: 0, y: 10, rotate: -4 }}
+          animate={{ opacity: 1, y: 0, rotate: -4 }}
+          transition={{ delay: 0.05, duration: 0.7 }}
+        >
+          hey, it's me
+        </motion.div>
         <motion.div
           className="eyebrow"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.1, duration: 0.6 }}
+          style={{ marginBottom: '0.75rem' }}
         >
-          Builder · est. 2026
+          AI & Data Science · CBIT
         </motion.div>
 
         <div style={{ overflow: 'hidden' }}>
           <motion.h1
             className="display"
-            style={{ fontSize: 'clamp(3.5rem, 12vw, 11rem)' }}
+            style={{ fontSize: 'clamp(3.5rem, 12vw, 11rem)', textAlign: 'center' }}
             variants={line}
             custom={0}
             initial="hidden"
             animate="show"
           >
-            [Your Name]
+            Mohammed
           </motion.h1>
         </div>
         <div style={{ overflow: 'hidden' }}>
           <motion.h1
             className="display"
-            style={{ fontSize: 'clamp(3.5rem, 12vw, 11rem)' }}
+            style={{ fontSize: 'clamp(3.5rem, 12vw, 11rem)', textAlign: 'center' }}
             variants={line}
             custom={1}
             initial="hidden"
             animate="show"
           >
-            Portfolio
+            Ayman Khan
           </motion.h1>
         </div>
 
-        <div style={{
-          display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end',
-          width: '100%', marginTop: '3rem', borderTop: '1px solid var(--line)', paddingTop: '1.5rem',
-        }}>
-          <motion.p
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6, duration: 0.7 }}
-            style={{ maxWidth: '34ch', color: 'var(--steel)', fontSize: '1rem' }}
-          >
-            One line, plainly stated — what you build, what you're chasing, no adjectives you wouldn't say out loud.
-          </motion.p>
-          <motion.div
-            className="eyebrow"
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7, duration: 0.6 }}
-            style={{ textAlign: 'right' }}
-          >
-            Scroll
-          </motion.div>
+        <motion.p
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6, duration: 0.7 }}
+          style={{ maxWidth: '40ch', color: 'var(--steel)', fontSize: '1.05rem', marginTop: '2rem' }}
+        >
+          Second-year AI & Data Science student at CBIT. Building with cloud, code, and curiosity.
+        </motion.p>
+
+        <div style={{ marginTop: '3rem' }}>
+          <Signature width="min(34vw, 240px)" delay={0.9} />
         </div>
 
-        <div style={{ marginTop: '3rem', display: 'flex', justifyContent: 'center', width: '100%' }}>
-          <Signature width="min(38vw, 260px)" delay={0.9} />
-        </div>
+        <motion.div
+          className="eyebrow"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 0.7, y: 0 }}
+          transition={{ delay: 2.6, duration: 0.6 }}
+          style={{ marginTop: '2.5rem' }}
+        >
+          Scroll
+        </motion.div>
       </motion.div>
     </section>
   )

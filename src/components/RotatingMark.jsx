@@ -39,7 +39,7 @@ export default function RotatingMark() {
 
   return (
     // tall scroll distance = finer-grained control over the rotation, feels deliberate rather than rushed
-    <section ref={sectionRef} style={{ minHeight: '280vh', padding: 0, display: 'block' }}>
+    <section ref={sectionRef} style={{ minHeight: '210vh', padding: 0, display: 'block' }}>
       <ChapterTag index={2} />
       <div style={{
         position: 'sticky', top: 0, height: '100vh',
@@ -74,7 +74,7 @@ export default function RotatingMark() {
           />
         </motion.div>
 
-        <motion.div className="pixel" style={{ opacity: frameOpacity, position: 'absolute', bottom: '9vh', fontSize: '0.6rem', color: 'var(--steel)' }}>
+        <motion.div className="caption" style={{ opacity: frameOpacity, position: 'absolute', bottom: '9vh', fontSize: '0.6rem', color: 'var(--steel)' }}>
           [ THE MARK ]
         </motion.div>
       </div>
